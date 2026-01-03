@@ -1,0 +1,28 @@
+#!/bin/sh
+
+RUNIT_DIR="$HOME/.runit/runsvdir"
+
+# Limpieza de restos de sesiones anteriores
+for d in "$RUNIT_DIR"/*; do
+    [ -d "$d/supervise" ] && rm -rf "$d/supervise"
+done
+
+cleanup() {
+    echo "Finalizando sesión runit ($USER)"
+
+    # Apagado limpio
+    sv -w 5 down "$RUNIT_DIR"/* 2>/dev/null
+
+    # Dejar que runsvdir termine solo
+    kill -TERM "$RUNSVDIR_PID" 2>/dev/null
+    wait "$RUNSVDIR_PID"
+}
+
+trap cleanup EXIT HUP INT TERM
+
+# Arrancar runsvdir en foreground controlado
+runsvdir "$RUNIT_DIR" &
+RUNSVDIR_PID=$!
+
+# ESTE wait es el corazón de todo
+wait "$RUNSVDIR_PID"
