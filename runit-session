@@ -1,0 +1,28 @@
+#!/bin/sh
+
+RUNIT_DIR="$HOME/.runit/runsvdir"
+
+cleanup() {
+    echo "Cerrando servicios runit ($USER)"
+
+    # Apagado limpio de servicios
+    sv -w 5 down "$RUNIT_DIR"/* 2>/dev/null
+
+    # Terminar runsvdir de forma educada
+    pkill -TERM -u "$USER" runsvdir 2>/dev/null
+
+    # Esperar a que runsvdir cierre bien
+    sleep 2
+
+    # SOLO si queda algo colgado
+    pgrep -u "$USER" runsvdir >/dev/null && \
+        pkill -KILL -u "$USER" runsvdir 2>/dev/null
+}
+
+trap cleanup EXIT INT TERM HUP
+
+# Limpieza preventiva (sesión anterior mal cerrada)
+rm -rf "$RUNIT_DIR"/*/supervise 2>/dev/null
+
+runsvdir "$RUNIT_DIR" &
+wait $!
