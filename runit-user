@@ -2,18 +2,27 @@
 
 RUNIT_DIR="$HOME/.runit/runsvdir"
 
-# Arranca runsvdir en primer plano
-runsvdir "$RUNIT_DIR" &
-RUNIT_PID=$!
-
-# Cuando la sesión muera, limpia TODO
 cleanup() {
+    echo "Cerrando servicios runit del usuario $USER"
+
+    # Baja servicios primero (limpio)
     sv -w 5 -v down "$RUNIT_DIR"/* 2>/dev/null
-    kill -TERM "$RUNIT_PID"
-    wait "$RUNIT_PID"
+
+    # Mata runsv del usuario
+    pkill -TERM -u "$USER" runsv 2>/dev/null
+    pkill -TERM -u "$USER" runsvdir 2>/dev/null
+
+    # Por si alguno queda colgado
+    sleep 1
+    pkill -KILL -u "$USER" runsv 2>/dev/null
+    pkill -KILL -u "$USER" runsvdir 2>/dev/null
 }
 
 trap cleanup EXIT INT TERM HUP
 
-# Espera a que muera la sesión
+# Arranca runsvdir normalmente
+runsvdir "$RUNIT_DIR" &
+RUNIT_PID=$!
+
+# Espera a que termine
 wait "$RUNIT_PID"
