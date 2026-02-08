@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Action
+Name=Abrir como administrador
+Profiles=on_folder;
+
+[X-Action-Profile on_folder]
+MimeTypes=inode/directory;
+Exec=pcmanfm-root %f
+Icon=folder-lock

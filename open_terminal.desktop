@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Action
+Name=Abrir en una terminal
+Profiles=profile-terminal;
+
+Terminal=true
+
+[X-Action-Profile profile-terminal]
+Exec=alacritty --working-directory=%f
+MimeTypes=inode/directory;
